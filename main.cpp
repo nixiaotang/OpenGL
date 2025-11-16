@@ -16,6 +16,8 @@ const unsigned int SCREEN_HEIGHT = 600;
 bool spacePressed = false;
 bool showLighting = false;
 
+int currentShader = 0;
+
 
 int main() {
 
@@ -52,6 +54,10 @@ int main() {
 
     // ---- SHADERS --------------------------------------
     Shader raytraceShader("shaders/default.vert", "shaders/rendering/raytrace.frag");
+    Shader raymarchShader("shaders/default.vert", "shaders/rendering/raymarch.frag");
+
+    Shader* shaders[] = {&raytraceShader, &raymarchShader};
+
 
     // ---- SETUP VERTEX DATA --------------------------------------
     float vertices[] = {
@@ -83,12 +89,12 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        raytraceShader.use();
+        shaders[currentShader]->use();
 
         // set uniforms
-        raytraceShader.setVec2("iResolution", SCREEN_WIDTH, SCREEN_HEIGHT);
-        raytraceShader.setFloat("iTime", glfwGetTime());
-        raytraceShader.setBool("showLighting", showLighting);
+        shaders[currentShader]->setVec2("iResolution", SCREEN_WIDTH, SCREEN_HEIGHT);
+        shaders[currentShader]->setFloat("iTime", glfwGetTime());
+        shaders[currentShader]->setBool("showLighting", showLighting);
 
         // draw triangles
         glBindVertexArray(VAO);
@@ -128,4 +134,12 @@ void processInput(GLFWwindow *window) {
     
     // reset flag when key is released
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE && spacePressed) spacePressed = false;
+
+    // control which shader is currently used
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        currentShader = 0;
+    }
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        currentShader = 1;
+    }
 }
