@@ -55,8 +55,9 @@ int main() {
     // ---- SHADERS --------------------------------------
     Shader raytraceShader("shaders/default.vert", "shaders/rendering/raytrace.frag");
     Shader raymarchShader("shaders/default.vert", "shaders/rendering/raymarch.frag");
+    Shader coolRaymarchShader("shaders/default.vert", "shaders/rendering/coolRaymarch.frag");
 
-    Shader* shaders[] = {&raytraceShader, &raymarchShader};
+    Shader* shaders[] = {&raytraceShader, &raymarchShader, &coolRaymarchShader};
 
 
     // ---- SETUP VERTEX DATA --------------------------------------
@@ -136,10 +137,7 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE && spacePressed) spacePressed = false;
 
     // control which shader is currently used
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-        currentShader = 0;
-    }
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-        currentShader = 1;
-    }
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) currentShader = 0;
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) currentShader = 1;
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) currentShader = 2;
 }

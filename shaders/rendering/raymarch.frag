@@ -7,6 +7,8 @@ uniform vec2 iResolution;
 uniform float iTime;
 uniform bool showLighting;
 
+const float PI = 3.1415926535897932384626433832795;
+
 
 // SDF of a sphere
 float funcSphere(vec3 p, vec3 centre, float radius) {
@@ -38,6 +40,16 @@ void cameraRay(vec2 p, out vec3 ro, out vec3 rd) {
     rd = normalize(pix - ro);
 }
 
+float calcE(vec3 p, vec3 n) {
+    vec3 lightOrigin = vec3(0.0, 15.0, 15.0);
+    float intensity = 30000.0;
+
+    vec3 l = normalize(lightOrigin - p);
+    float r = length(lightOrigin - p);
+    return intensity * dot(n, l) / (4.0 * PI * r * r);
+}
+
+
 void main() {
 
     // Generate a camera ray --------------------------------
@@ -61,7 +73,14 @@ void main() {
 
     if (hit) {
         vec3 n = calcNormal(p);
-        FragColor = vec4(abs(vec3(n.z, n.x, n.y)), 1.0);
+        float c = 1.0;
+        if (showLighting) {
+            float Kd = 1.0;
+            c = Kd / PI * calcE(p, n);                  // lambertian shading
+        }
+
+        FragColor = vec4(c * abs(vec3(n.z, n.x, n.y)), 1.0);
+
     } else {
         FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
