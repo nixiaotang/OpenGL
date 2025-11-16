@@ -9,8 +9,12 @@ void processInput(GLFWwindow *window);
 
 
 // window settings
-const unsigned int SCREEN_WIDTH = 800;
+const unsigned int SCREEN_WIDTH = 600;
 const unsigned int SCREEN_HEIGHT = 600;
+
+// key settings
+bool spacePressed = false;
+bool showLighting = false;
 
 
 int main() {
@@ -47,15 +51,15 @@ int main() {
 
 
     // ---- SHADERS --------------------------------------
-    Shader shader("shaders/default.vert", "shaders/default.frag");
-
+    Shader raytraceShader("shaders/default.vert", "shaders/rendering/raytrace.frag");
 
     // ---- SETUP VERTEX DATA --------------------------------------
     float vertices[] = {
-        // positions        // colors
-        0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,       // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,       // bottom left
-        0.0f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f        // top 
+        // positions
+        1.0f, -1.0f, 0.0f,       // bottom right
+        -1.0f, -1.0f, 0.0f,      // bottom left
+        1.0f, 1.0f, 0.0f,        // top right
+        -1.0f, 1.0f, 0.0f,     // top left
     };
 
     unsigned int VBO, VAO;
@@ -65,14 +69,9 @@ int main() {
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);             // bind buffer to `GL_ARRAY_BUFFER` target
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);                      // copies vertex data to currently bound buffer (VBO)
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);                   // set vertex attribute pointers
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);                   // set vertex attribute pointers
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));   // set colour attribute pointers
-    glEnableVertexAttribArray(1);
 
-    // draw wireframe
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // ---- RENDER LOOP --------------------------------------
     while (!glfwWindowShouldClose(window)) {
@@ -84,15 +83,16 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        shader.use();
+        raytraceShader.use();
 
-        float timeValue = glfwGetTime();
-        float greenValue = sin(timeValue) / 2.0f + 0.5f;
-        shader.setFloat("ourColor", greenValue);
+        // set uniforms
+        raytraceShader.setVec2("iResolution", SCREEN_WIDTH, SCREEN_HEIGHT);
+        raytraceShader.setFloat("iTime", glfwGetTime());
+        raytraceShader.setBool("showLighting", showLighting);
 
-        // draw triangle
+        // draw triangles
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         
         glfwSwapBuffers(window);                    // swap buffers (double buffer - separate output and rendering buffer to reduce artifacts)
         glfwPollEvents();                           // checks for keyboard input, mouse movement... etc.
@@ -119,4 +119,13 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, i
 void processInput(GLFWwindow *window) {
     // close the window if user presses "ESC" key
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+
+    // toggle lighting when SPACE is pressed
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !spacePressed) {
+        spacePressed = true;
+        showLighting = !showLighting;
+    }
+    
+    // reset flag when key is released
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE && spacePressed) spacePressed = false;
 }
